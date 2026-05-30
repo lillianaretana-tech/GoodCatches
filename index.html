@@ -66,7 +66,7 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; b
 .photo-zone p { font-size: 13px; color: var(--color-text-secondary); }
 .photo-zone .hint { font-size: 11px; color: var(--color-text-tertiary); margin-top: 3px; }
 .photo-preview { position: relative; margin-top: 0.75rem; }
-.photo-preview img { width: 100%; max-height: 200px; object-fit: cover; border-radius: var(--border-radius-md); border: 0.5px solid var(--color-border-tertiary); }
+.photo-preview img { width: 100%; max-height: 400px; object-fit: contain; border-radius: var(--border-radius-md); border: 0.5px solid var(--color-border-tertiary); }
 .photo-remove {
   position: absolute; top: 6px; right: 6px;
   background: rgba(0,0,0,0.65); color: white;
@@ -102,7 +102,7 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; b
 .badge-ok { background: #0d2e1a; color: #4caf82; }
 .record-desc { font-size: 13px; color: var(--color-text-secondary); margin: 8px 0 6px; line-height: 1.5; }
 .record-cat { font-size: 11px; padding: 3px 9px; border-radius: 20px; background: #1a3a5c; color: #5ba4e8; display: inline-block; }
-.record-photo { width: 100%; max-height: 150px; object-fit: cover; border-radius: var(--border-radius-md); margin-top: 8px; border: 0.5px solid var(--color-border-tertiary); }
+.record-photo { width: 100%; max-height: 400px; object-fit: contain; border-radius: var(--border-radius-md); margin-top: 8px; border: 0.5px solid var(--color-border-tertiary); }
 .photo-link { display: inline-flex; align-items: center; gap: 4px; font-size: 12px; color: #5ba4e8; margin-top: 8px; text-decoration: none; }
 .approve-btn {
   font-size: 12px; padding: 6px 14px;
@@ -167,7 +167,7 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; b
   <div class="tab active" onclick="showTab('report')" id="tab-report">
     <i class="ti ti-plus" style="font-size:14px;vertical-align:-2px;margin-right:3px"></i>Reportar
   </div>
-  <div class="tab" onclick="showTab('review')" id="tab-review">
+  <div class="tab" onclick="askPin()" id="tab-review">
     <i class="ti ti-clipboard-check" style="font-size:14px;vertical-align:-2px;margin-right:3px"></i>Aprobar
     <span id="badge-count" style="display:none;background:#1a5fa8;color:white;font-size:10px;padding:1px 6px;border-radius:10px;margin-left:3px"></span>
   </div>
@@ -195,13 +195,12 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; b
         </select>
       </div>
       <div class="field">
-        <label>Programa <span class="req">*</span></label>
-        <select id="f-programa">
-          <option value="">Selecciona...</option>
-          <option>ADVANT</option><option>BAYER</option><option>DXC</option>
-          <option>LSEG</option><option>MCK</option><option>MULTIPARK</option>
-          <option>UBER</option><option>WPLACES</option><option>Operaciones</option>
-        </select>
+        <label>Edificio <span class="req">*</span></label>
+        <input type="text" id="f-edificio" placeholder="Ej: UPK 2, Torre A..." autocomplete="off" />
+      </div>
+      <div class="field">
+        <label>Piso / Área <span class="req">*</span></label>
+        <input type="text" id="f-area" placeholder="Ej: Piso 3, Comedor, Parqueo..." autocomplete="off" />
       </div>
     </div>
     <div class="divider"></div>
@@ -300,6 +299,15 @@ const today = new Date().toISOString().split('T')[0];
 document.getElementById('f-fecha').value = today;
 updateBadge();
 
+function askPin() {
+  const pin = prompt('Ingresá el PIN de acceso:');
+  if (pin === '2312') {
+    showTab('review');
+  } else if (pin !== null) {
+    alert('PIN incorrecto.');
+  }
+}
+
 function showTab(t) {
   document.getElementById('tab-report').classList.toggle('active', t === 'report');
   document.getElementById('tab-review').classList.toggle('active', t === 'review');
@@ -344,11 +352,12 @@ async function submitReport() {
   const fecha    = document.getElementById('f-fecha').value;
   const nombre   = document.getElementById('f-nombre').value.trim();
   const proyecto = document.getElementById('f-proyecto').value;
-  const programa = document.getElementById('f-programa').value;
+  const edificio = document.getElementById('f-edificio').value.trim();
+  const area     = document.getElementById('f-area').value.trim();
   const desc     = document.getElementById('f-desc').value.trim();
   const turno    = document.getElementById('f-turno').value;
 
-  if (!fecha || !nombre || !proyecto || !programa || !selectedCat || !desc) {
+  if (!fecha || !nombre || !proyecto || !edificio || !area || !selectedCat || !desc) {
     alert('Por favor completá todos los campos requeridos (*).');
     return;
   }
@@ -360,7 +369,7 @@ async function submitReport() {
   const record = {
     id: Date.now(),
     fecha, nombre, proyecto, programa,
-    categoria: selectedCat, descripcion: desc, turno,
+    edificio, area, categoria: selectedCat, descripcion: desc, turno,
     estado: 'pendiente',
     accionCorrectiva: '', clasificacion: '',
     fotoBase64: photoBase64 || null,
@@ -402,7 +411,8 @@ function newReport() {
   document.getElementById('f-fecha').value = today;
   document.getElementById('f-nombre').value = '';
   document.getElementById('f-proyecto').value = '';
-  document.getElementById('f-programa').value = '';
+  document.getElementById('f-edificio').value = '';
+  document.getElementById('f-area').value = '';
   document.getElementById('f-desc').value = '';
   document.getElementById('f-turno').value = 'Día';
   document.querySelectorAll('.cat-btn').forEach(b => b.classList.remove('selected'));
@@ -458,7 +468,7 @@ function renderRecords() {
       <div class="record-top">
         <div>
           <div class="record-name">${r.nombre}</div>
-          <div class="record-meta">${r.proyecto} · ${r.programa} · ${r.fecha}</div>
+          <div class="record-meta">${r.proyecto} · ${r.edificio} · ${r.area} · ${r.fecha}</div>
         </div>
         <span class="badge ${r.estado === 'pendiente' ? 'badge-pending' : 'badge-ok'}">
           ${r.estado === 'pendiente' ? 'Pendiente' : 'Aprobado'}
