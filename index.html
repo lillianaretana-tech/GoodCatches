@@ -1,0 +1,534 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<meta name="theme-color" content="#1a5fa8" />
+<title>Good Catches SBM</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@2.44.0/tabler-icons.min.css" />
+<style>
+:root {
+  --color-background-primary: #1a1a1a;
+  --color-background-secondary: #242424;
+  --color-background-tertiary: #2e2e2e;
+  --color-text-primary: #f0f0f0;
+  --color-text-secondary: #aaaaaa;
+  --color-text-tertiary: #777777;
+  --color-border-tertiary: rgba(255,255,255,0.08);
+  --color-border-secondary: rgba(255,255,255,0.15);
+  --border-radius-md: 8px;
+  --border-radius-lg: 12px;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: var(--color-background-primary); color: var(--color-text-primary); max-width: 480px; margin: 0 auto; min-height: 100vh; }
+.header { background: #1a5fa8; color: white; padding: 1rem 1.25rem; }
+.header h1 { font-size: 18px; font-weight: 500; }
+.header p { font-size: 12px; opacity: 0.8; margin-top: 2px; }
+.tab-bar { display: flex; border-bottom: 0.5px solid var(--color-border-tertiary); background: var(--color-background-secondary); }
+.tab { flex: 1; padding: 10px; text-align: center; font-size: 13px; cursor: pointer; color: var(--color-text-secondary); border-bottom: 2px solid transparent; }
+.tab.active { color: #5ba4e8; border-bottom-color: #5ba4e8; font-weight: 500; }
+.section { padding: 1rem 1.25rem; }
+.field { margin-bottom: 1.25rem; }
+.field label { display: block; font-size: 13px; color: var(--color-text-secondary); margin-bottom: 4px; }
+.req { color: #e24b4a; }
+.field input, .field select, .field textarea {
+  width: 100%; font-size: 14px; padding: 8px 10px;
+  border: 0.5px solid var(--color-border-secondary);
+  border-radius: var(--border-radius-md);
+  background: var(--color-background-tertiary);
+  color: var(--color-text-primary);
+  outline: none;
+}
+.field input:focus, .field select:focus, .field textarea:focus {
+  border-color: #5ba4e8;
+}
+.field textarea { min-height: 80px; resize: none; }
+.field select option { background: #2e2e2e; }
+.cats { display: flex; flex-wrap: wrap; gap: 6px; }
+.cat-btn {
+  font-size: 12px; padding: 6px 11px;
+  border: 0.5px solid var(--color-border-secondary);
+  border-radius: 20px;
+  background: var(--color-background-tertiary);
+  color: var(--color-text-secondary);
+  cursor: pointer;
+}
+.cat-btn.selected { background: #1a3a5c; border-color: #5ba4e8; color: #5ba4e8; font-weight: 500; }
+.photo-zone {
+  border: 1.5px dashed var(--color-border-secondary);
+  border-radius: var(--border-radius-lg);
+  padding: 1.5rem 1.25rem;
+  text-align: center;
+  cursor: pointer;
+  background: var(--color-background-tertiary);
+}
+.photo-zone i { font-size: 28px; color: #5ba4e8; display: block; margin-bottom: 6px; }
+.photo-zone p { font-size: 13px; color: var(--color-text-secondary); }
+.photo-zone .hint { font-size: 11px; color: var(--color-text-tertiary); margin-top: 3px; }
+.photo-preview { position: relative; margin-top: 0.75rem; }
+.photo-preview img { width: 100%; max-height: 200px; object-fit: cover; border-radius: var(--border-radius-md); border: 0.5px solid var(--color-border-tertiary); }
+.photo-remove {
+  position: absolute; top: 6px; right: 6px;
+  background: rgba(0,0,0,0.65); color: white;
+  border: none; border-radius: 50%;
+  width: 26px; height: 26px; font-size: 13px;
+  cursor: pointer; display: flex; align-items: center; justify-content: center;
+}
+.btn-primary {
+  width: 100%; padding: 12px;
+  background: #1a5fa8; color: white;
+  border: none; border-radius: var(--border-radius-md);
+  font-size: 15px; font-weight: 500; cursor: pointer;
+  margin-top: 0.5rem;
+}
+.btn-primary:disabled { opacity: 0.5; cursor: default; }
+.btn-primary:active { opacity: 0.85; }
+.divider { height: 0.5px; background: var(--color-border-tertiary); margin: 0 1.25rem; }
+.success-msg { text-align: center; padding: 3rem 1.25rem; }
+.success-icon { font-size: 56px; color: #1d9e75; margin-bottom: 0.75rem; }
+.success-msg h2 { font-size: 18px; font-weight: 500; margin-bottom: 0.5rem; }
+.success-msg p { font-size: 13px; color: var(--color-text-secondary); margin-bottom: 1.5rem; }
+.record-card {
+  background: var(--color-background-secondary);
+  border: 0.5px solid var(--color-border-tertiary);
+  border-radius: var(--border-radius-lg);
+  padding: 1rem 1.25rem; margin-bottom: 0.75rem;
+}
+.record-top { display: flex; justify-content: space-between; align-items: flex-start; }
+.record-name { font-size: 14px; font-weight: 500; }
+.record-meta { font-size: 12px; color: var(--color-text-secondary); margin-top: 2px; }
+.badge { font-size: 11px; padding: 3px 9px; border-radius: 20px; white-space: nowrap; }
+.badge-pending { background: #3a2800; color: #f5c75a; }
+.badge-ok { background: #0d2e1a; color: #4caf82; }
+.record-desc { font-size: 13px; color: var(--color-text-secondary); margin: 8px 0 6px; line-height: 1.5; }
+.record-cat { font-size: 11px; padding: 3px 9px; border-radius: 20px; background: #1a3a5c; color: #5ba4e8; display: inline-block; }
+.record-photo { width: 100%; max-height: 150px; object-fit: cover; border-radius: var(--border-radius-md); margin-top: 8px; border: 0.5px solid var(--color-border-tertiary); }
+.photo-link { display: inline-flex; align-items: center; gap: 4px; font-size: 12px; color: #5ba4e8; margin-top: 8px; text-decoration: none; }
+.approve-btn {
+  font-size: 12px; padding: 6px 14px;
+  background: #1a5fa8; color: white;
+  border: none; border-radius: var(--border-radius-md);
+  cursor: pointer; margin-top: 10px;
+}
+.approved-info { margin-top: 8px; font-size: 12px; color: var(--color-text-secondary); line-height: 1.6; }
+.approve-panel {
+  background: var(--color-background-tertiary);
+  border-radius: var(--border-radius-md);
+  padding: 1rem; margin-top: 0.75rem;
+  border: 0.5px solid var(--color-border-secondary);
+}
+.approve-panel .field { margin-bottom: 0.75rem; }
+.approve-panel .field:last-of-type { margin-bottom: 0; }
+.btn-row { display: flex; gap: 8px; margin-top: 0.75rem; }
+.btn-cancel {
+  flex: 1; padding: 8px;
+  border: 0.5px solid var(--color-border-secondary);
+  background: transparent; border-radius: var(--border-radius-md);
+  font-size: 13px; cursor: pointer; color: var(--color-text-primary);
+}
+.btn-approve {
+  flex: 2; padding: 8px; background: #1d9e75;
+  color: white; border: none; border-radius: var(--border-radius-md);
+  font-size: 13px; font-weight: 500; cursor: pointer;
+}
+.empty { text-align: center; padding: 3rem 1.25rem; color: var(--color-text-secondary); font-size: 14px; }
+.empty i { font-size: 36px; margin-bottom: 0.75rem; display: block; color: var(--color-text-tertiary); }
+.filter-bar { padding: 0.75rem 1.25rem; display: flex; gap: 6px; }
+.filter-chip {
+  font-size: 12px; padding: 5px 12px; border-radius: 20px;
+  border: 0.5px solid var(--color-border-secondary);
+  background: var(--color-background-tertiary);
+  color: var(--color-text-secondary); cursor: pointer;
+}
+.filter-chip.active { background: #1a3a5c; border-color: #5ba4e8; color: #5ba4e8; }
+.sheet-link {
+  display: flex; align-items: center; gap: 8px;
+  padding: 0.9rem 1.25rem; font-size: 13px; color: #5ba4e8;
+  cursor: pointer; text-decoration: none;
+}
+.spinner {
+  display: inline-block; width: 14px; height: 14px;
+  border: 2px solid rgba(255,255,255,0.3);
+  border-top-color: white; border-radius: 50%;
+  animation: spin 0.7s linear infinite;
+  vertical-align: -3px; margin-right: 6px;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <h1><i class="ti ti-shield-check" style="font-size:16px;vertical-align:-2px;margin-right:6px"></i>Good Catches SBM</h1>
+  <p>Reporte de condiciones inseguras</p>
+</div>
+
+<div class="tab-bar">
+  <div class="tab active" onclick="showTab('report')" id="tab-report">
+    <i class="ti ti-plus" style="font-size:14px;vertical-align:-2px;margin-right:3px"></i>Reportar
+  </div>
+  <div class="tab" onclick="showTab('review')" id="tab-review">
+    <i class="ti ti-clipboard-check" style="font-size:14px;vertical-align:-2px;margin-right:3px"></i>Aprobar
+    <span id="badge-count" style="display:none;background:#1a5fa8;color:white;font-size:10px;padding:1px 6px;border-radius:10px;margin-left:3px"></span>
+  </div>
+</div>
+
+<!-- VISTA REPORTAR -->
+<div id="view-report">
+  <div id="form-section">
+    <div class="section">
+      <div class="field">
+        <label>Fecha del reporte <span class="req">*</span></label>
+        <input type="date" id="f-fecha" />
+      </div>
+      <div class="field">
+        <label>Nombre completo <span class="req">*</span></label>
+        <input type="text" id="f-nombre" placeholder="Tu nombre completo" autocomplete="name" />
+      </div>
+      <div class="field">
+        <label>Proyecto <span class="req">*</span></label>
+        <select id="f-proyecto">
+          <option value="">Selecciona...</option>
+          <option>ADVANT</option><option>BAYER</option><option>DXC</option>
+          <option>LSEG</option><option>MCK</option><option>MULTIPARK</option>
+          <option>UBER</option><option>WPLACES</option><option>Operaciones</option>
+        </select>
+      </div>
+      <div class="field">
+        <label>Programa <span class="req">*</span></label>
+        <select id="f-programa">
+          <option value="">Selecciona...</option>
+          <option>ADVANT</option><option>BAYER</option><option>DXC</option>
+          <option>LSEG</option><option>MCK</option><option>MULTIPARK</option>
+          <option>UBER</option><option>WPLACES</option><option>Operaciones</option>
+        </select>
+      </div>
+    </div>
+    <div class="divider"></div>
+    <div class="section">
+      <div class="field">
+        <label>Tipo de Good Catch <span class="req">*</span></label>
+        <div class="cats" id="cat-group">
+          <div class="cat-btn" onclick="selectCat(this)">Almacenamiento inadecuado</div>
+          <div class="cat-btn" onclick="selectCat(this)">Comportamiento</div>
+          <div class="cat-btn" onclick="selectCat(this)">Químico</div>
+          <div class="cat-btn" onclick="selectCat(this)">Ambiental</div>
+          <div class="cat-btn" onclick="selectCat(this)">Equipo</div>
+          <div class="cat-btn" onclick="selectCat(this)">Levantamiento</div>
+          <div class="cat-btn" onclick="selectCat(this)">Mantenimiento</div>
+          <div class="cat-btn" onclick="selectCat(this)">Mantenimiento general</div>
+          <div class="cat-btn" onclick="selectCat(this)">Derrames</div>
+          <div class="cat-btn" onclick="selectCat(this)">Fugas</div>
+          <div class="cat-btn" onclick="selectCat(this)">Caídas y resbalones</div>
+        </div>
+      </div>
+      <div class="field">
+        <label>Descripción <span class="req">*</span></label>
+        <textarea id="f-desc" placeholder="Describe brevemente la condición insegura encontrada..."></textarea>
+      </div>
+      <div class="field">
+        <label>Turno</label>
+        <select id="f-turno">
+          <option>Día</option><option>Tarde</option><option>Noche</option>
+        </select>
+      </div>
+      <div class="field">
+        <label>Foto de evidencia</label>
+        <div class="photo-zone" id="photo-zone" onclick="document.getElementById('photo-input').click()">
+          <i class="ti ti-camera"></i>
+          <p>Toca para tomar foto o seleccionar</p>
+          <p class="hint">JPG o PNG · máximo 5MB</p>
+        </div>
+        <input type="file" id="photo-input" accept="image/*" capture="environment" style="display:none" onchange="handlePhoto(this)" />
+        <div id="photo-preview" class="photo-preview" style="display:none">
+          <img id="preview-img" src="" alt="Vista previa" />
+          <button class="photo-remove" onclick="removePhoto()" aria-label="Quitar foto">
+            <i class="ti ti-x" style="font-size:12px"></i>
+          </button>
+        </div>
+      </div>
+      <button class="btn-primary" id="submit-btn" onclick="submitReport()">
+        <i class="ti ti-send" style="font-size:15px;vertical-align:-2px;margin-right:6px"></i>Enviar reporte
+      </button>
+    </div>
+  </div>
+
+  <div id="success-section" style="display:none" class="success-msg">
+    <div class="success-icon"><i class="ti ti-circle-check"></i></div>
+    <h2>¡Reporte enviado!</h2>
+    <p>Tu good catch fue registrado correctamente. Gracias por reportar.</p>
+    <button class="btn-primary" style="max-width:200px;margin:0 auto" onclick="newReport()">
+      <i class="ti ti-plus" style="font-size:14px;vertical-align:-2px;margin-right:5px"></i>Nuevo reporte
+    </button>
+  </div>
+</div>
+
+<!-- VISTA APROBAR -->
+<div id="view-review" style="display:none">
+  <div class="filter-bar">
+    <div class="filter-chip active" onclick="filterRecords('todos',this)">Todos</div>
+    <div class="filter-chip" onclick="filterRecords('pendiente',this)">Pendientes</div>
+    <div class="filter-chip" onclick="filterRecords('aprobado',this)">Aprobados</div>
+  </div>
+  <div class="divider"></div>
+  <div id="records-list" class="section" style="padding-top:0.75rem"></div>
+  <div class="divider"></div>
+  <a class="sheet-link" href="TU_GOOGLE_SHEET_URL_AQUI" target="_blank">
+    <i class="ti ti-table-export" style="font-size:16px"></i>
+    Ver todos los registros en Google Sheets
+  </a>
+</div>
+
+<script>
+const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyHY5RoZqCE48zSapJ1UzETCA_3BfgtrIROUV0RBRB30yKwtXgrEs6L3gbFbT1eXfGc/exec";
+const SHEET_URL  = "1NakbWHUCsdOY0hxqbWHhkX3BOQ-HdxmQqh5J325lOgo/edit?gid=0#gid=0";
+
+const CATS = [
+  "Almacenamiento inadecuado","Comportamiento","Químico","Ambiental",
+  "Equipo","Levantamiento","Mantenimiento","Mantenimiento general",
+  "Derrames","Fugas","Caídas y resbalones"
+];
+
+let records = JSON.parse(localStorage.getItem('gc_records_v3') || '[]');
+let selectedCat = '';
+let currentFilter = 'todos';
+let openApproveId = null;
+let photoBase64 = null;
+let photoMime = null;
+
+const today = new Date().toISOString().split('T')[0];
+document.getElementById('f-fecha').value = today;
+updateBadge();
+
+function showTab(t) {
+  document.getElementById('tab-report').classList.toggle('active', t === 'report');
+  document.getElementById('tab-review').classList.toggle('active', t === 'review');
+  document.getElementById('view-report').style.display = t === 'report' ? 'block' : 'none';
+  document.getElementById('view-review').style.display = t === 'review' ? 'block' : 'none';
+  if (t === 'review') renderRecords();
+}
+
+function selectCat(el) {
+  document.querySelectorAll('.cat-btn').forEach(b => b.classList.remove('selected'));
+  el.classList.add('selected');
+  selectedCat = el.textContent;
+}
+
+function handlePhoto(input) {
+  const file = input.files[0];
+  if (!file) return;
+  if (file.size > 5 * 1024 * 1024) {
+    alert('La foto supera los 5MB. Por favor elegí una imagen más pequeña o reducí la resolución.');
+    return;
+  }
+  photoMime = file.type;
+  const reader = new FileReader();
+  reader.onload = e => {
+    photoBase64 = e.target.result.split(',')[1];
+    document.getElementById('preview-img').src = e.target.result;
+    document.getElementById('photo-preview').style.display = 'block';
+    document.getElementById('photo-zone').style.display = 'none';
+  };
+  reader.readAsDataURL(file);
+}
+
+function removePhoto() {
+  photoBase64 = null;
+  photoMime = null;
+  document.getElementById('photo-input').value = '';
+  document.getElementById('photo-preview').style.display = 'none';
+  document.getElementById('photo-zone').style.display = 'block';
+}
+
+async function submitReport() {
+  const fecha    = document.getElementById('f-fecha').value;
+  const nombre   = document.getElementById('f-nombre').value.trim();
+  const proyecto = document.getElementById('f-proyecto').value;
+  const programa = document.getElementById('f-programa').value;
+  const desc     = document.getElementById('f-desc').value.trim();
+  const turno    = document.getElementById('f-turno').value;
+
+  if (!fecha || !nombre || !proyecto || !programa || !selectedCat || !desc) {
+    alert('Por favor completá todos los campos requeridos (*).');
+    return;
+  }
+
+  const btn = document.getElementById('submit-btn');
+  btn.disabled = true;
+  btn.innerHTML = '<span class="spinner"></span>Enviando...';
+
+  const record = {
+    id: Date.now(),
+    fecha, nombre, proyecto, programa,
+    categoria: selectedCat, descripcion: desc, turno,
+    estado: 'pendiente',
+    accionCorrectiva: '', clasificacion: '',
+    fotoBase64: photoBase64 || null,
+    fotoMime: photoMime || null,
+    fotoUrl: null
+  };
+
+  try {
+    await sendToSheet(record);
+  } catch(e) {
+    console.error('Error al enviar:', e);
+  }
+
+  records.unshift(record);
+  localStorage.setItem('gc_records_v3', JSON.stringify(records));
+  updateBadge();
+
+  document.getElementById('form-section').style.display = 'none';
+  document.getElementById('success-section').style.display = 'block';
+}
+
+async function sendToSheet(record) {
+  if (SCRIPT_URL === "TU_APPS_SCRIPT_URL_AQUI") return;
+  const payload = {
+    fecha: record.fecha,
+    nombre: record.nombre,
+    proyecto: record.proyecto,
+    programa: record.programa,
+    categoria: record.categoria,
+    descripcion: record.descripcion,
+    turno: record.turno,
+    fotoBase64: record.fotoBase64 || '',
+    fotoMime: record.fotoMime || ''
+  };
+  await fetch(SCRIPT_URL, { method: 'POST', body: JSON.stringify(payload) });
+}
+
+function newReport() {
+  document.getElementById('f-fecha').value = today;
+  document.getElementById('f-nombre').value = '';
+  document.getElementById('f-proyecto').value = '';
+  document.getElementById('f-programa').value = '';
+  document.getElementById('f-desc').value = '';
+  document.getElementById('f-turno').value = 'Día';
+  document.querySelectorAll('.cat-btn').forEach(b => b.classList.remove('selected'));
+  selectedCat = '';
+  removePhoto();
+  const btn = document.getElementById('submit-btn');
+  btn.disabled = false;
+  btn.innerHTML = '<i class="ti ti-send" style="font-size:15px;vertical-align:-2px;margin-right:6px"></i>Enviar reporte';
+  document.getElementById('form-section').style.display = 'block';
+  document.getElementById('success-section').style.display = 'none';
+}
+
+function updateBadge() {
+  const n = records.filter(r => r.estado === 'pendiente').length;
+  const b = document.getElementById('badge-count');
+  b.style.display = n > 0 ? 'inline' : 'none';
+  b.textContent = n;
+}
+
+function renderRecords() {
+  const list = document.getElementById('records-list');
+  const filtered = currentFilter === 'todos'
+    ? records
+    : records.filter(r => r.estado === currentFilter);
+
+  if (!filtered.length) {
+    list.innerHTML = '<div class="empty"><i class="ti ti-clipboard-x"></i>No hay registros aquí</div>';
+    return;
+  }
+
+  list.innerHTML = filtered.map(r => {
+    const imgHtml = r.fotoBase64
+      ? `<img class="record-photo" src="data:${r.fotoMime};base64,${r.fotoBase64}" alt="Foto" />`
+      : r.fotoUrl
+        ? `<a class="photo-link" href="${r.fotoUrl}" target="_blank"><i class="ti ti-photo" style="font-size:14px"></i> Ver foto en Drive</a>`
+        : '';
+
+    const bottomHtml = r.estado === 'pendiente'
+      ? `<br><button class="approve-btn" onclick="toggleApprove(${r.id})">
+           <i class="ti ti-check" style="font-size:12px;vertical-align:-1px;margin-right:3px"></i>Aprobar
+         </button>`
+      : `<div class="approved-info">
+           <strong style="color:var(--color-text-primary)">Clasificación:</strong> ${r.clasificacion || '—'}<br>
+           <strong style="color:var(--color-text-primary)">Acción correctiva:</strong> ${r.accionCorrectiva || '—'}<br>
+           <strong style="color:var(--color-text-primary)">Aprobado:</strong> ${r.fechaAprobacion || '—'}
+         </div>`;
+
+    const approvePanel = (r.estado === 'pendiente' && openApproveId === r.id)
+      ? renderApprovePanel(r)
+      : '';
+
+    return `<div class="record-card" id="card-${r.id}">
+      <div class="record-top">
+        <div>
+          <div class="record-name">${r.nombre}</div>
+          <div class="record-meta">${r.proyecto} · ${r.programa} · ${r.fecha}</div>
+        </div>
+        <span class="badge ${r.estado === 'pendiente' ? 'badge-pending' : 'badge-ok'}">
+          ${r.estado === 'pendiente' ? 'Pendiente' : 'Aprobado'}
+        </span>
+      </div>
+      <div class="record-desc">${r.descripcion}</div>
+      <span class="record-cat">${r.categoria}</span>
+      ${imgHtml}
+      ${bottomHtml}
+      ${approvePanel}
+    </div>`;
+  }).join('');
+}
+
+function renderApprovePanel(r) {
+  return `<div class="approve-panel">
+    <div class="field">
+      <label>Clasificación</label>
+      <select id="ap-crit-${r.id}">
+        <option>Non Critical</option>
+        <option>Critical</option>
+      </select>
+    </div>
+    <div class="field">
+      <label>Categoría Good Catch</label>
+      <select id="ap-cat-${r.id}">
+        ${CATS.map(c => `<option${c === r.categoria ? ' selected' : ''}>${c}</option>`).join('')}
+      </select>
+    </div>
+    <div class="field">
+      <label>Acción correctiva <span class="req">*</span></label>
+      <textarea id="ap-ac-${r.id}" placeholder="Describe la acción tomada..."></textarea>
+    </div>
+    <div class="btn-row">
+      <button class="btn-cancel" onclick="toggleApprove(null)">Cancelar</button>
+      <button class="btn-approve" onclick="approveRecord(${r.id})">
+        <i class="ti ti-check" style="font-size:13px;vertical-align:-1px;margin-right:4px"></i>Aceptar reporte
+      </button>
+    </div>
+  </div>`;
+}
+
+function toggleApprove(id) {
+  openApproveId = openApproveId === id ? null : id;
+  renderRecords();
+}
+
+function approveRecord(id) {
+  const accion = document.getElementById(`ap-ac-${id}`).value.trim();
+  if (!accion) { alert('Ingresá la acción correctiva antes de aprobar.'); return; }
+  const idx = records.findIndex(r => r.id === id);
+  if (idx > -1) {
+    records[idx].estado = 'aprobado';
+    records[idx].accionCorrectiva = accion;
+    records[idx].clasificacion = document.getElementById(`ap-crit-${id}`).value;
+    records[idx].categoria = document.getElementById(`ap-cat-${id}`).value;
+    records[idx].fechaAprobacion = new Date().toLocaleDateString('es-CR');
+    localStorage.setItem('gc_records_v3', JSON.stringify(records));
+    updateBadge();
+    openApproveId = null;
+    renderRecords();
+  }
+}
+
+function filterRecords(f, el) {
+  currentFilter = f;
+  document.querySelectorAll('.filter-chip').forEach(c => c.classList.remove('active'));
+  el.classList.add('active');
+  renderRecords();
+}
+</script>
+</body>
+</html>
