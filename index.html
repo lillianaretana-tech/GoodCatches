@@ -368,7 +368,7 @@ async function submitReport() {
 
   const record = {
     id: Date.now(),
-    fecha, nombre, proyecto, programa,
+    fecha, nombre, proyecto, edificio, area,
     edificio, area, categoria: selectedCat, descripcion: desc, turno,
     estado: 'pendiente',
     accionCorrectiva: '', clasificacion: '',
@@ -397,7 +397,7 @@ async function sendToSheet(record) {
     fecha: record.fecha,
     nombre: record.nombre,
     proyecto: record.proyecto,
-    programa: record.programa,
+    edificio: record.edificio, area: record.area,
     categoria: record.categoria,
     descripcion: record.descripcion,
     turno: record.turno,
