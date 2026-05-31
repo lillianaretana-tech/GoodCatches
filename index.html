@@ -440,18 +440,11 @@ async function sendToSheet(record) {
     fotoMime: record.fotoMime || ''
   };
 
-  const res = await fetch(SCRIPT_URL, {
-    method: 'POST',
-    body: JSON.stringify(payload)
+ await fetch(SCRIPT_URL, {
+  method: 'POST',
+  body: JSON.stringify(payload),
+  mode: 'no-cors'
   });
-
-  const data = await res.json().catch(() => null);
-
-  if (!res.ok || (data && data.status === 'error')) {
-    throw new Error(data?.msg || 'Error enviando a Google');
-  }
-
-  return data;
 }
 
 function newReport() {
