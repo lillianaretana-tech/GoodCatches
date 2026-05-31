@@ -421,30 +421,18 @@ async function submitReport() {
 
 async function sendToSheet(record) {
   if (SCRIPT_URL === "TU_APPS_SCRIPT_URL_AQUI") return;
-
   const payload = {
-    tipoEnvio: record.tipoEnvio || 'reporte',
     fecha: record.fecha,
     nombre: record.nombre,
     proyecto: record.proyecto,
-    edificio: record.edificio,
-    area: record.area,
+    edificio: record.edificio, area: record.area,
     categoria: record.categoria,
     descripcion: record.descripcion,
     turno: record.turno,
-    estado: record.estado || 'pendiente',
-    clasificacion: record.clasificacion || '',
-    accionCorrectiva: record.accionCorrectiva || '',
-    fechaAprobacion: record.fechaAprobacion || '',
     fotoBase64: record.fotoBase64 || '',
     fotoMime: record.fotoMime || ''
   };
-
- await fetch(SCRIPT_URL, {
-  method: 'POST',
-  body: JSON.stringify(payload),
-  mode: 'no-cors'
-  });
+  await fetch(SCRIPT_URL, { method: 'POST', body: JSON.stringify(payload) });
 }
 
 function newReport() {
@@ -639,45 +627,37 @@ function toggleApprove(id) {
 
 async function approveRecord(id) {
   const accion = document.getElementById(`ap-ac-${id}`).value.trim();
-  if (!accion) {
-    alert('Ingresá la acción correctiva antes de aprobar.');
-    return;
-  }
-
+  if (!accion) { alert('Ingresá la acción correctiva antes de aprobar.'); return; }
+  const clasificacion = document.getElementById(`ap-crit-${id}`).value;
+  const categoria = document.getElementById(`ap-cat-${id}`).value;
   const idx = records.findIndex(r => r.id === id);
-  if (idx === -1) return;
-
-  const btn = document.querySelector(`#ap-ac-${id}`)
-    .closest('.approve-panel')
-    .querySelector('.btn-approve');
-
-  btn.disabled = true;
-  btn.innerHTML = '<span class="spinner"></span>Enviando aprobación...';
-
-  const aprobado = {
-    ...records[idx],
-    estado: 'aprobado',
-    accionCorrectiva: accion,
-    clasificacion: document.getElementById(`ap-crit-${id}`).value,
-    categoria: document.getElementById(`ap-cat-${id}`).value,
-    fechaAprobacion: new Date().toLocaleDateString('es-CR'),
-    tipoEnvio: 'aprobacion'
-  };
-
-  try {
-    await sendToSheet(aprobado);
-
-    records[idx] = aprobado;
+  if (idx > -1) {
+    records[idx].estado = 'aprobado';
+    records[idx].accionCorrectiva = accion;
+    records[idx].clasificacion = clasificacion;
+    records[idx].categoria = categoria;
+    records[idx].fechaAprobacion = new Date().toLocaleDateString('es-CR');
     localStorage.setItem('gc_records_v3', JSON.stringify(records));
     updateBadge();
     openApproveId = null;
     renderRecords();
-    alert('Reporte aprobado y enviado correctamente.');
-  } catch (e) {
-    console.error('Error al enviar aprobación:', e);
-    alert('No se pudo enviar la aprobación a Google Sheets. Intentá de nuevo.');
-    btn.disabled = false;
-    btn.innerHTML = '<i class="ti ti-check" style="font-size:13px;vertical-align:-1px;margin-right:4px"></i>Aceptar reporte';
+    // Actualizar Sheet
+    if (SCRIPT_URL !== "TU_APPS_SCRIPT_URL_AQUI") {
+      try {
+        await fetch(SCRIPT_URL, {
+          method: 'POST',
+          body: JSON.stringify({
+            tipo: 'aprobacion',
+            id: records[idx].gcId || String(id),
+            accion: accion,
+            clasificacion: clasificacion,
+            categoria: categoria,
+            fechaAprobacion: records[idx].fechaAprobacion
+          }),
+          mode: 'no-cors'
+        });
+      } catch(e) { console.error('Error actualizando Sheet:', e); }
+    }
   }
 }
 
