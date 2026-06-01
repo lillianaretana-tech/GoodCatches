@@ -462,19 +462,21 @@ function updateBadge() {
 
 function deleteRecord(id) {
   if (!confirm('¿Eliminár este reporte? Esta acción no se puede deshacer.')) return;
-  records = records.filter(r => r.id !== id);
+  records = records.filter(r => (r.gcId || r.id) != id);
+  if (sheetRecords) sheetRecords = sheetRecords.filter(r => (r.gcId || r.id) != id);
   localStorage.setItem('gc_records_v3', JSON.stringify(records));
   updateBadge();
   renderRecords();
 }
 
 function toggleEdit(id) {
-  openEditId = openEditId === id ? null : id;
+  openEditId = openEditId == id ? null : id;
   openApproveId = null;
   renderRecords();
 }
 
 function renderEditPanel(r) {
+  const rid = r.gcId || r.id;
   const PROYECTOS = ['ADVANT','BAYER','DXC','LSEG','MCK','MULTIPARK','UBER','WPLACES','Operaciones'];
   return `<div class="approve-panel" style="border-color:#4caf82">
     <div class="field"><label>Fecha</label>
@@ -517,7 +519,7 @@ function renderEditPanel(r) {
 }
 
 function saveEdit(id) {
-  const idx = records.findIndex(r => r.id === id);
+  const idx = records.findIndex(r => (r.gcId || r.id) == id);
   if (idx > -1) {
     records[idx].fecha     = document.getElementById(`ed-fecha-${id}`).value;
     records[idx].nombre    = document.getElementById(`ed-nombre-${id}`).value.trim();
@@ -600,11 +602,12 @@ function renderRecords(data) {
         ? `<a class="photo-link" href="${r.fotoUrl}" target="_blank"><i class="ti ti-photo" style="font-size:14px"></i> Ver foto en Drive</a>`
         : '';
 
-    const deleteBtn = `<button class="delete-btn" onclick="deleteRecord(${r.id})" title="Eliminar"><i class="ti ti-trash" style="font-size:12px;vertical-align:-1px"></i></button>`;
+    const rid = r.gcId || r.id;
+    const deleteBtn = `<button class="delete-btn" onclick="deleteRecord('${rid}')" title="Eliminar"><i class="ti ti-trash" style="font-size:12px;vertical-align:-1px"></i></button>`;
     const bottomHtml = r.estado === 'pendiente'
       ? `<div class="action-row">
-           <button class="approve-btn" onclick="toggleApprove(${r.id})"><i class="ti ti-check" style="font-size:12px;vertical-align:-1px;margin-right:3px"></i>Aprobar</button>
-           <button class="edit-btn" onclick="toggleEdit(${r.id})"><i class="ti ti-pencil" style="font-size:12px;vertical-align:-1px;margin-right:3px"></i>Editar</button>
+           <button class="approve-btn" onclick="toggleApprove('${rid}')"><i class="ti ti-check" style="font-size:12px;vertical-align:-1px;margin-right:3px"></i>Aprobar</button>
+           <button class="edit-btn" onclick="toggleEdit('${rid}')"><i class="ti ti-pencil" style="font-size:12px;vertical-align:-1px;margin-right:3px"></i>Editar</button>
            ${deleteBtn}
          </div>`
       : `<div class="approved-info">
@@ -614,10 +617,10 @@ function renderRecords(data) {
          </div>
          <div class="action-row" style="margin-top:8px">${deleteBtn}</div>`;
 
-    const approvePanel = (r.estado === 'pendiente' && openApproveId === r.id)
+    const approvePanel = (r.estado === 'pendiente' && openApproveId == rid)
       ? renderApprovePanel(r)
       : '';
-    const editPanel = (r.estado === 'pendiente' && openEditId === r.id)
+    const editPanel = (r.estado === 'pendiente' && openEditId == rid)
       ? renderEditPanel(r)
       : '';
 
@@ -642,6 +645,7 @@ function renderRecords(data) {
 }
 
 function renderApprovePanel(r) {
+  const rid = r.gcId || r.id;
   return `<div class="approve-panel">
     <div class="field">
       <label>Clasificación</label>
@@ -679,7 +683,7 @@ async function approveRecord(id) {
   if (!accion) { alert('Ingresá la acción correctiva antes de aprobar.'); return; }
   const clasificacion = document.getElementById(`ap-crit-${id}`).value;
   const categoria = document.getElementById(`ap-cat-${id}`).value;
-  const idx = records.findIndex(r => r.id === id);
+  const idx = records.findIndex(r => (r.gcId || r.id) == id);
   if (idx > -1) {
     records[idx].estado = 'aprobado';
     records[idx].accionCorrectiva = accion;
