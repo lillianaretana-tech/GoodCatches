@@ -328,7 +328,13 @@ function showTab(t) {
   document.getElementById('tab-review').classList.toggle('active', t === 'review');
   document.getElementById('view-report').style.display = t === 'report' ? 'block' : 'none';
   document.getElementById('view-review').style.display = t === 'review' ? 'block' : 'none';
-  if (t === 'review') loadFromSheet();
+  if (t === 'review') {
+    if (sheetRecords) {
+      renderRecords(sheetRecords);
+    } else {
+      loadFromSheet();
+    }
+  }
 }
 
 function selectCat(el) {
@@ -567,17 +573,18 @@ function loadViaScript() {
 
 function onSheetData(data) {
   if (data && data.registros) {
-    // Merge Sheet records with local (local tiene fotos en base64)
     const localMap = {};
     records.forEach(r => { if (r.id) localMap[r.id] = r; });
-    
     sheetRecords = data.registros.map(r => {
       const local = localMap[r.id] || {};
       return { ...r, fotoBase64: local.fotoBase64 || null, fotoMime: local.fotoMime || null };
     });
-    renderRecords(sheetRecords);
+    // Solo renderiza si no hay panel abierto
+    if (!openApproveId && !openEditId) {
+      renderRecords(sheetRecords);
+    }
   } else {
-    renderRecords();
+    if (!openApproveId && !openEditId) renderRecords();
   }
 }
 
