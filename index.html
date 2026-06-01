@@ -303,6 +303,7 @@ const CATS = [
 ];
 
 let records = JSON.parse(localStorage.getItem('gc_records_v3') || '[]');
+let sheetRecords = null;
 let selectedCat = '';
 let currentFilter = 'pendiente';
 let openApproveId = null;
@@ -460,7 +461,8 @@ function newReport() {
 }
 
 function updateBadge() {
-  const n = records.filter(r => r.estado === 'pendiente').length;
+  const source = sheetRecords || records;
+  const n = source.filter(r => normalizeEstado(r.estado) === 'pendiente').length;
   const b = document.getElementById('badge-count');
   b.style.display = n > 0 ? 'inline' : 'none';
   b.textContent = n;
@@ -582,20 +584,27 @@ function onSheetData(data) {
     // Solo renderiza si no hay panel abierto
     if (!openApproveId && !openEditId) {
       renderRecords(sheetRecords);
+      updateBadge();
     }
   } else {
     if (!openApproveId && !openEditId) renderRecords();
   }
 }
 
-let sheetRecords = null;
+function getActiveRecords(data) {
+  return data || sheetRecords || records;
+}
+
+function normalizeEstado(estado) {
+  return String(estado || 'pendiente').trim().toLowerCase();
+}
 
 function renderRecords(data) {
-  const useData = data || records;
+  const useData = getActiveRecords(data);
   const list = document.getElementById('records-list');
   const filtered = currentFilter === 'todos'
     ? useData
-    : useData.filter(r => r.estado === currentFilter);
+    : useData.filter(r => normalizeEstado(r.estado) === currentFilter);
 
   if (!filtered.length) {
     list.innerHTML = '<div class="empty"><i class="ti ti-clipboard-x"></i>No hay registros aquí</div>';
@@ -611,7 +620,8 @@ function renderRecords(data) {
 
     const rid = r.gcId || r.id;
     const deleteBtn = `<button class="delete-btn" onclick="deleteRecord('${rid}')" title="Eliminar"><i class="ti ti-trash" style="font-size:12px;vertical-align:-1px"></i></button>`;
-    const bottomHtml = r.estado === 'pendiente'
+    const estado = normalizeEstado(r.estado);
+    const bottomHtml = estado === 'pendiente'
       ? `<div class="action-row">
            <button class="approve-btn" onclick="toggleApprove('${rid}')"><i class="ti ti-check" style="font-size:12px;vertical-align:-1px;margin-right:3px"></i>Aprobar</button>
            <button class="edit-btn" onclick="toggleEdit('${rid}')"><i class="ti ti-pencil" style="font-size:12px;vertical-align:-1px;margin-right:3px"></i>Editar</button>
@@ -624,10 +634,10 @@ function renderRecords(data) {
          </div>
          <div class="action-row" style="margin-top:8px">${deleteBtn}</div>`;
 
-    const approvePanel = (r.estado === 'pendiente' && openApproveId == rid)
+    const approvePanel = (estado === 'pendiente' && openApproveId == rid)
       ? renderApprovePanel(r)
       : '';
-    const editPanel = (r.estado === 'pendiente' && openEditId == rid)
+    const editPanel = (estado === 'pendiente' && openEditId == rid)
       ? renderEditPanel(r)
       : '';
 
@@ -637,8 +647,8 @@ function renderRecords(data) {
           <div class="record-name">${r.nombre}</div>
           <div class="record-meta">${r.proyecto} · ${r.edificio} · ${r.area} · ${r.fecha}</div>
         </div>
-        <span class="badge ${r.estado === 'pendiente' ? 'badge-pending' : 'badge-ok'}">
-          ${r.estado === 'pendiente' ? 'Pendiente' : 'Aprobado'}
+        <span class="badge ${estado === 'pendiente' ? 'badge-pending' : 'badge-ok'}">
+          ${estado === 'pendiente' ? 'Pendiente' : 'Aprobado'}
         </span>
       </div>
       <div class="record-desc">${r.descripcion}</div>
@@ -717,7 +727,7 @@ async function approveRecord(id) {
 
   updateBadge();
   openApproveId = null;
-  renderRecords(sheetRecords || undefined);
+  renderRecords();
 
   // Actualizar Sheet
   if (SCRIPT_URL !== "TU_APPS_SCRIPT_URL_AQUI") {
