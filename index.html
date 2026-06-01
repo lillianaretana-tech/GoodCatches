@@ -155,6 +155,33 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; b
   color: var(--color-text-secondary); cursor: pointer;
 }
 .filter-chip.active { background: #1a3a5c; border-color: #5ba4e8; color: #5ba4e8; }
+.period-bar {
+  padding: 0 1.25rem 0.75rem;
+  display: none;
+  gap: 8px;
+  align-items: center;
+}
+.period-bar.show { display: flex; }
+.period-bar select {
+  flex: 1;
+  min-width: 0;
+  font-size: 12px;
+  padding: 6px 8px;
+  border: 0.5px solid var(--color-border-secondary);
+  border-radius: var(--border-radius-md);
+  background: var(--color-background-tertiary);
+  color: var(--color-text-primary);
+  outline: none;
+}
+.period-clear {
+  width: 32px;
+  height: 32px;
+  border: 0.5px solid var(--color-border-secondary);
+  border-radius: var(--border-radius-md);
+  background: var(--color-background-tertiary);
+  color: var(--color-text-secondary);
+  cursor: pointer;
+}
 .sheet-link {
   display: flex; align-items: center; gap: 8px;
   padding: 0.9rem 1.25rem; font-size: 13px; color: #5ba4e8;
@@ -283,6 +310,29 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; b
     <div class="filter-chip active" onclick="filterRecords('pendiente',this)">Pendientes</div>
     <div class="filter-chip" onclick="filterRecords('aprobado',this)">Aprobados</div>
   </div>
+  <div class="period-bar" id="period-bar">
+    <select id="period-month" onchange="changePeriodFilter()">
+      <option value="">Todos los meses</option>
+      <option value="01">Enero</option>
+      <option value="02">Febrero</option>
+      <option value="03">Marzo</option>
+      <option value="04">Abril</option>
+      <option value="05">Mayo</option>
+      <option value="06">Junio</option>
+      <option value="07">Julio</option>
+      <option value="08">Agosto</option>
+      <option value="09">Septiembre</option>
+      <option value="10">Octubre</option>
+      <option value="11">Noviembre</option>
+      <option value="12">Diciembre</option>
+    </select>
+    <select id="period-year" onchange="changePeriodFilter()">
+      <option value="">Todos los años</option>
+    </select>
+    <button class="period-clear" onclick="clearPeriodFilter()" title="Limpiar periodo" aria-label="Limpiar periodo">
+      <i class="ti ti-x" style="font-size:14px"></i>
+    </button>
+  </div>
   <div class="divider"></div>
   <div id="records-list" class="section" style="padding-top:0.75rem"></div>
   <div class="divider"></div>
@@ -306,6 +356,8 @@ let records = JSON.parse(localStorage.getItem('gc_records_v3') || '[]');
 let sheetRecords = null;
 let selectedCat = '';
 let currentFilter = 'pendiente';
+let periodMonth = '';
+let periodYear = '';
 let openApproveId = null;
 let openEditId = null;
 let photoBase64 = null;
@@ -599,12 +651,64 @@ function normalizeEstado(estado) {
   return String(estado || 'pendiente').trim().toLowerCase();
 }
 
+function getRecordYear(fecha) {
+  const value = String(fecha || '').trim();
+  const match = value.match(/^(\d{4})[-/](\d{1,2})[-/](\d{1,2})/);
+  if (match) return match[1];
+  const parsed = new Date(value);
+  return Number.isNaN(parsed.getTime()) ? '' : String(parsed.getFullYear());
+}
+
+function getRecordMonth(fecha) {
+  const value = String(fecha || '').trim();
+  const match = value.match(/^(\d{4})[-/](\d{1,2})[-/](\d{1,2})/);
+  if (match) return match[2].padStart(2, '0');
+  const parsed = new Date(value);
+  return Number.isNaN(parsed.getTime()) ? '' : String(parsed.getMonth() + 1).padStart(2, '0');
+}
+
+function syncPeriodControls(data) {
+  const source = getActiveRecords(data);
+  const yearSelect = document.getElementById('period-year');
+  if (!yearSelect) return;
+
+  const years = [...new Set(source.map(r => getRecordYear(r.fecha)).filter(Boolean))].sort((a, b) => b.localeCompare(a));
+  yearSelect.innerHTML = '<option value="">Todos los aÃ±os</option>' +
+    years.map(y => `<option value="${y}"${y === periodYear ? ' selected' : ''}>${y}</option>`).join('');
+
+  const monthSelect = document.getElementById('period-month');
+  if (monthSelect) monthSelect.value = periodMonth;
+
+  const bar = document.getElementById('period-bar');
+  if (bar) bar.classList.toggle('show', currentFilter !== 'pendiente');
+}
+
+function changePeriodFilter() {
+  periodMonth = document.getElementById('period-month').value;
+  periodYear = document.getElementById('period-year').value;
+  renderRecords();
+}
+
+function clearPeriodFilter() {
+  periodMonth = '';
+  periodYear = '';
+  renderRecords();
+}
+
 function renderRecords(data) {
   const useData = getActiveRecords(data);
   const list = document.getElementById('records-list');
-  const filtered = currentFilter === 'todos'
+  syncPeriodControls(useData);
+  const byStatus = currentFilter === 'todos'
     ? useData
     : useData.filter(r => normalizeEstado(r.estado) === currentFilter);
+  const filtered = currentFilter === 'pendiente'
+    ? byStatus
+    : byStatus.filter(r => {
+        const monthOk = !periodMonth || getRecordMonth(r.fecha) === periodMonth;
+        const yearOk = !periodYear || getRecordYear(r.fecha) === periodYear;
+        return monthOk && yearOk;
+      });
 
   if (!filtered.length) {
     list.innerHTML = '<div class="empty"><i class="ti ti-clipboard-x"></i>No hay registros aquí</div>';
@@ -752,6 +856,10 @@ function filterRecords(f, el) {
   currentFilter = f;
   document.querySelectorAll('.filter-chip').forEach(c => c.classList.remove('active'));
   el.classList.add('active');
+  if (currentFilter === 'pendiente') {
+    periodMonth = '';
+    periodYear = '';
+  }
   renderRecords();
 }
 </script>
